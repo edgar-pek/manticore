@@ -2141,6 +2141,27 @@ class Linux(Platform):
 
         return count
 
+    def sys_sendto(self, sockfd, buf, count, flags, dest_addr, addrlen):
+        if dest_addr != 0:
+            logger.warning("sys_sendto: Unimplemented non-NULL dest_addr")
+
+        if addrlen != 0:
+            logger.warning("sys_sendto: Unimplemented non-NULL addrlen")
+
+        # TODO Unimplemented dest_addr and addrlen, so act like sys_send
+        try:
+            sock = self.files[sockfd]
+        except IndexError:
+            return -errno.EINVAL
+
+        if not isinstance(sock, Socket):
+            return -errno.ENOTSOCK
+
+        data = self.current.read_bytes(buf, count)
+        self.syscall_trace.append(("_sendto", sockfd, data))
+
+        return count
+
     def sys_sendfile(self, out_fd, in_fd, offset_p, count):
         if offset_p != 0:
             offset = self.current.read_int(offset_p, self.count.address_bit_size)
